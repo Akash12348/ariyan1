@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Convert JSON to PDF online. Free JSON to PDF converter tool with preview functionality. Export JSON data as PDF documents.">
+    <meta name="keywords" content="JSON to PDF, JSON converter, PDF generator, JSON tool, online converter">
+    <meta name="author" content="Web Tools">
+    <title>JSON to PDF Converter | Free Online Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        header p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #1a2a6c;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 1.8rem;
+        }
+        
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .flex-container > div {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        #json-input {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background-color: #f8f9fa;
+            transition: border-color 0.3s;
+        }
+        
+        #json-input:focus {
+            outline: none;
+            border-color: #4a6fcb;
+            box-shadow: 0 0 0 3px rgba(74, 111, 203, 0.2);
+        }
+        
+        #preview {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background-color: #f8f9fa;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #4a6fcb, #1a2a6c);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        button.secondary {
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+        }
+        
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .examples {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .example-card {
+            background: #f0f4ff;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #4a6fcb;
+        }
+        
+        .example-card:hover {
+            background: #e2e8ff;
+            transform: translateX(5px);
+        }
+        
+        .example-card h3 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+        }
+        
+        .example-card pre {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            overflow: hidden;
+            max-height: 100px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: white;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .error {
+            color: #e74c3c;
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+            font-weight: 500;
+        }
+        
+        .success {
+            color: #27ae60;
+            background: #eafaf1;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .flex-container {
+                flex-direction: column;
+            }
+            
+            header h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>JSON to PDF Converter</h1>
+            <p>Transform your JSON data into professional PDF documents with our free online tool. Simply paste your JSON, preview the output, and download as PDF.</p>
+        </header>
+        
+        <div class="card">
+            <h2>Your JSON Input</h2>
+            <textarea id="json-input" placeholder='Enter your JSON here... Example: { "name": "John", "age": 30, "city": "New York" }'></textarea>
+            
+            <div class="controls">
+                <button id="format-btn">Format JSON</button>
+                <button id="clear-btn" class="secondary">Clear</button>
+            </div>
+            
+            <div id="error-msg" class="error"></div>
+            <div id="success-msg" class="success"></div>
+            
+            <h2>Preview</h2>
+            <div id="preview"></div>
+            
+            <div class="controls">
+                <button id="convert-btn">Convert to PDF</button>
+                <button id="example-btn" class="secondary">Load Example</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Try These Examples</h2>
+            <div class="examples">
+                <div class="example-card" data-example="simple">
+                    <h3>Simple Object</h3>
+                    <pre>{
+  "name": "Alice",
+  "age": 28,
+  "email": "alice@example.com"
+}</pre>
+                </div>
+                
+                <div class="example-card" data-example="array">
+                    <h3>Array of Objects</h3>
+                    <pre>[
+  { "id": 1, "name": "Product A", "price": 19.99 },
+  { "id": 2, "name": "Product B", "price": 29.99 }
+]</pre>
+                </div>
+                
+                <div class="example-card" data-example="complex">
+                    <h3>Complex Structure</h3>
+                    <pre>{
+  "company": "Tech Solutions",
+  "employees": [
+    { "name": "John", "position": "Developer" },
+    { "name": "Sarah", "position": "Designer" }
+  ],
+  "location": "San Francisco"
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>How to Use This Tool</h2>
+            <ol style="padding-left: 20px; margin-top: 15px;">
+                <li>Enter your JSON data in the input box above</li>
+                <li>Click "Format JSON" to validate and format your JSON</li>
+                <li>Preview your formatted JSON in the preview area</li>
+                <li>Click "Convert to PDF" to generate and download your PDF</li>
+                <li>Use the examples to quickly test the tool</li>
+            </ol>
+            
+            <h2 style="margin-top: 25px;">SEO Benefits</h2>
+            <ul style="padding-left: 20px; margin-top: 15px;">
+                <li>No data leaves your browser - all processing happens locally</li>
+                <li>Fast and secure conversion without server uploads</li>
+                <li>Mobile-friendly responsive design</li>
+                <li>Completely free with no registration required</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>© 2023 JSON to PDF Converter | All processing happens in your browser for maximum privacy | This tool is free to use</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonInput = document.getElementById('json-input');
+            const previewDiv = document.getElementById('preview');
+            const formatBtn = document.getElementById('format-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const convertBtn = document.getElementById('convert-btn');
+            const exampleBtn = document.getElementById('example-btn');
+            const errorMsg = document.getElementById('error-msg');
+            const successMsg = document.getElementById('success-msg');
+            const exampleCards = document.querySelectorAll('.example-card');
+            
+            // Initialize with a simple example
+            jsonInput.value = JSON.stringify({
+                "title": "Sample JSON Data",
+                "description": "This is an example JSON structure",
+                "items": [
+                    {"id": 1, "name": "First Item", "value": 100},
+                    {"id": 2, "name": "Second Item", "value": 200}
+                ],
+                "metadata": {
+                    "created": "2023-10-15",
+                    "modified": "2023-10-16"
+                }
+            }, null, 2);
+            
+            formatJSON();
+            
+            // Format JSON button
+            formatBtn.addEventListener('click', formatJSON);
+            
+            // Clear button
+            clearBtn.addEventListener('click', function() {
+                jsonInput.value = '';
+                previewDiv.innerHTML = '';
+                hideMessages();
+            });
+            
+            // Convert to PDF button
+            convertBtn.addEventListener('click', convertToPDF);
+            
+            // Example button
+            exampleBtn.addEventListener('click', function() {
+                jsonInput.value = JSON.stringify({
+                    "report": "Monthly Sales",
+                    "period": "October 2023",
+                    "data": [
+                        {"product": "Widget A", "units": 150, "revenue": 3750},
+                        {"product": "Widget B", "units": 200, "revenue": 6000},
+                        {"product": "Widget C", "units": 75, "revenue": 1875}
+                    ],
+                    "total_revenue": 11625,
+                    "notes": "Best selling month this year!"
+                }, null, 2);
+                formatJSON();
+            });
+            
+            // Example cards
+            exampleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const exampleType = this.getAttribute('data-example');
+                    loadExample(exampleType);
+                });
+            });
+            
+            // Load specific example
+            function loadExample(type) {
+                let exampleData;
+                
+                switch(type) {
+                    case 'simple':
+                        exampleData = {
+                            "name": "Alice Johnson",
+                            "age": 32,
+                            "email": "alice.johnson@example.com",
+                            "isActive": true,
+                            "joined": "2020-05-15"
+                        };
+                        break;
+                    case 'array':
+                        exampleData = [
+                            {"id": 101, "product": "Laptop", "price": 999.99, "inStock": true},
+                            {"id": 102, "product": "Smartphone", "price": 699.99, "inStock": true},
+                            {"id": 103, "product": "Tablet", "price": 499.99, "inStock": false}
+                        ];
+                        break;
+                    case 'complex':
+                        exampleData = {
+                            "organization": "Global Solutions Inc.",
+                            "departments": [
+                                {
+                                    "name": "Engineering",
+                                    "employees": 45,
+                                    "manager": "Robert Chen"
+                                },
+                                {
+                                    "name": "Marketing",
+                                    "employees": 22,
+                                    "manager": "Emily Parker"
+                                }
+                            ],
+                            "location": {
+                                "headquarters": "New York",
+                                "offices": ["London", "Tokyo", "Sydney"]
+                            },
+                            "founded": 2005
+                        };
+                        break;
+                }
+                
+                jsonInput.value = JSON.stringify(exampleData, null, 2);
+                formatJSON();
+            }
+            
+            // Format and validate JSON
+            function formatJSON() {
+                hideMessages();
+                const input = jsonInput.value.trim();
+                
+                if (!input) {
+                    showError('Please enter some JSON data');
+                    return;
+                }
+                
+                try {
+                    const parsed = JSON.parse(input);
+                    const formatted = JSON.stringify(parsed, null, 2);
+                    jsonInput.value = formatted;
+                    
+                    // Display formatted JSON in preview
+                    previewDiv.textContent = formatted;
+                    showSuccess('JSON is valid and formatted!');
+                } catch (e) {
+                    showError('Invalid JSON: ' + e.message);
+                    previewDiv.textContent = '';
+                }
+            }
+            
+            // Convert to PDF
+            function convertToPDF() {
+                hideMessages();
+                const input = jsonInput.value.trim();
+                
+                if (!input) {
+                    showError('Please enter some JSON data');
+                    return;
+                }
+                
+                try {
+                    const data = JSON.parse(input);
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    // Set document properties for SEO
+                    doc.setProperties({
+                        title: 'Converted JSON Document',
+                        subject: 'JSON to PDF Conversion',
+                        author: 'JSON to PDF Converter Tool',
+                        keywords: 'json, pdf, conversion, data'
+                    });
+                    
+                    // Add title
+                    doc.setFontSize(20);
+                    doc.setTextColor(26, 42, 108);
+                    doc.text('JSON to PDF Conversion', 105, 20, null, null, 'center');
+                    
+                    // Add subtitle
+                    doc.setFontSize(12);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text('Generated from JSON data', 105, 28, null, null, 'center');
+                    
+                    // Add generation date
+                    const now = new Date();
+                    doc.setFontSize(10);
+                    doc.text(`Generated on: ${now.toLocaleString()}`, 105, 35, null, null, 'center');
+                    
+                    doc.setDrawColor(26, 42, 108);
+                    doc.setLineWidth(0.5);
+                    doc.line(20, 40, 190, 40);
+                    
+                    // Process data for PDF
+                    if (Array.isArray(data) {
+                        // Array data - create a table
+                        if (data.length > 0 && typeof data[0] === 'object') {
+                            // Array of objects
+                            const headers = Object.keys(data[0]);
+                            const rows = data.map(obj => Object.values(obj));
+                            
+                            doc.autoTable({
+                                startY: 45,
+                                head: [headers],
+                                body: rows,
+                                theme: 'grid',
+                                headStyles: {
+                                    fillColor: [26, 42, 108],
+                                    textColor: 255,
+                                    fontStyle: 'bold'
+                                },
+                                alternateRowStyles: {
+                                    fillColor: [240, 240, 240]
+                                },
+                                margin: { top: 45 }
+                            });
+                        } else {
+                            // Simple array
+                            doc.setFontSize(12);
+                            doc.setTextColor(0, 0, 0);
+                            let y = 45;
+                            data.forEach((item, index) => {
+                                if (y > 280) {
+                                    doc.addPage();
+                                    y = 20;
+                                }
+                                doc.text(`${index + 1}. ${item}`, 20, y);
+                                y += 10;
+                            });
+                        }
+                    } else if (typeof data === 'object' && data !== null) {
+                        // Single object
+                        doc.setFontSize(12);
+                        doc.setTextColor(0, 0, 0);
+                        let y = 45;
+                        for (const [key, value] of Object.entries(data)) {
+                            if (y > 280) {
+                                doc.addPage();
+                                y = 20;
+                            }
+                            
+                            if (typeof value === 'object' && value !== null) {
+                                doc.setFont('helvetica', 'bold');
+                                doc.text(`${key}:`, 20, y);
+                                doc.setFont('helvetica', 'normal');
+                                y += 7;
+                                const subObj = JSON.stringify(value, null, 2).split('\n');
+                                for (const line of subObj) {
+                                    if (y > 280) {
+                                        doc.addPage();
+                                        y = 20;
+                                    }
+                                    doc.text(`  ${line}`, 25, y);
+                                    y += 7;
+                                }
+                            } else {
+                                doc.setFont('helvetica', 'bold');
+                                doc.text(`${key}:`, 20, y);
+                                doc.setFont('helvetica', 'normal');
+                                doc.text(String(value), 60, y);
+                                y += 10;
+                            }
+                        }
+                    } else {
+                        // Primitive value
+                        doc.setFontSize(14);
+                        doc.text(`Value: ${data}`, 20, 45);
+                    }
+                    
+                    // Add footer
+                    const pageCount = doc.internal.getNumberOfPages();
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(10);
+                        doc.setTextColor(100, 100, 100);
+                        doc.text(`Page ${i} of ${pageCount}`, 105, 285, null, null, 'center');
+                        doc.text('Generated by JSON to PDF Converter', 105, 290, null, null, 'center');
+                    }
+                    
+                    // Save the PDF
+                    doc.save('converted-json.pdf');
+                    showSuccess('PDF generated successfully!');
+                } catch (e) {
+                    showError('Error generating PDF: ' + e.message);
+                }
+            }
+            
+            // Helper functions for messages
+            function showError(message) {
+                errorMsg.textContent = message;
+                errorMsg.style.display = 'block';
+                successMsg.style.display = 'none';
+            }
+            
+            function showSuccess(message) {
+                successMsg.textContent = message;
+                successMsg.style.display = 'block';
+                errorMsg.style.display = 'none';
+            }
+            
+            function hideMessages() {
+                errorMsg.style.display = 'none';
+                successMsg.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
